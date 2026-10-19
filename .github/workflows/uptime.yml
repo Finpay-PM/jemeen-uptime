@@ -3,7 +3,7 @@ name: uptime
 # (label "uptime"); GitHub emails the repository owner on open and on close.
 on:
   schedule:
-    - cron: '*/5 * * * *'   # best effort; GitHub may delay scheduled runs
+    - cron: '2-57/5 * * * *'   # best effort; GitHub may delay scheduled runs
     - cron: '17 3 1 * *'    # monthly keepalive (public repos stop schedules after 60 idle days)
   workflow_dispatch:
     inputs:
