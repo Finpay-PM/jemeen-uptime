@@ -1,0 +1,53 @@
+name: uptime
+# Host-independent outage alerts for Jemeen (N62). Alerts are GitHub issues
+# (label "uptime"); GitHub emails the repository owner on open and on close.
+on:
+  schedule:
+    - cron: '*/5 * * * *'   # best effort; GitHub may delay scheduled runs
+    - cron: '17 3 1 * *'    # monthly keepalive (public repos stop schedules after 60 idle days)
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: 'Probe and print only (no issues)'
+        type: boolean
+        default: false
+concurrency:
+  group: uptime
+  cancel-in-progress: false
+permissions:
+  contents: read
+jobs:
+  check:
+    if: github.event.schedule != '17 3 1 * *'
+    runs-on: ubuntu-latest
+    timeout-minutes: 4
+    permissions:
+      contents: read
+      issues: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Probe targets and open/close outage issues
+        env:
+          MONITOR_TARGETS: ${{ secrets.MONITOR_TARGETS }}  # a secret so step logs mask the URL list
+          MONITOR_MENTION: ${{ vars.MONITOR_MENTION }}
+          MONITOR_DRY_RUN: ${{ inputs.dry_run && 'true' || 'false' }}
+          GITHUB_TOKEN: ${{ github.token }}
+        run: node check.mjs
+  keepalive:
+    if: github.event.schedule == '17 3 1 * *'
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - name: Monthly heartbeat commit
+        run: |
+          date -u +%Y-%m-%dT%H:%M:%SZ > .keepalive
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add .keepalive
+          git commit -m 'keepalive' && git push

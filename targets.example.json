@@ -1,0 +1,6 @@
+[
+  {"name": "render-health", "url": "https://jemeen-operations.onrender.com/health", "expectBody": "ok"},
+  {"name": "jemeen-home", "url": "https://jemeen.com/", "expectText": "Jemeen", "expectHeader": "strict-transport-security"},
+  {"name": "jemeen-catalog", "url": "https://jemeen.com/api/catalog", "expectText": "\"products\""},
+  {"name": "backups", "url": "https://jemeen-operations.onrender.com/health/backup", "expectBody": "ok"}
+]
